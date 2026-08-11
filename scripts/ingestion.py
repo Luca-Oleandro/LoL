@@ -3,10 +3,7 @@ from datetime import datetime, timedelta, timezone
 import logging
 import os
 import time
-
-from dotenv import load_dotenv
 import requests
-
 import archive
 
 logging.basicConfig(
@@ -115,7 +112,6 @@ def fetch_and_archive_matches(matches, headers, conn):
 
 
 def main():
-    load_dotenv()
     api_key = os.getenv("RIOT_API_KEY")
     headers = {"X-Riot-Token": api_key}
 
