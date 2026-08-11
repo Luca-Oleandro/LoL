@@ -1,8 +1,8 @@
 .env
 .env.*
-/logs/
-/data/
-/__pycache__/
+logs/
+data/
+__pycache__/
 *.gz
 *.json
 *.db
