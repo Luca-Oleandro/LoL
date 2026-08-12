@@ -118,20 +118,22 @@ def main():
     queue = "RANKED_SOLO_5x5"
     queue_id = 420  # Solo/Duo Ranked queue ID
     conn = archive.get_connection()
+    try:
+        players = get_apex_players(queue, headers)
+        puuids = [player["puuid"] for player in players if "puuid" in player]
 
-    players = get_apex_players(queue, headers)
-    puuids = [player["puuid"] for player in players if "puuid" in player]
-    matches = get_matches_id(
-        queue_id, puuids, headers, lookback_days=MATCH_LOOKBACK_DAYS
-    )
+        matches = get_matches_id(
+            queue_id, puuids, headers, lookback_days=MATCH_LOOKBACK_DAYS
+        )
 
-    new_matches = {m for m in matches if not archive.is_archived(conn, m)}
-    logger.info(f"Found {len(new_matches)} new matches to process")
+        new_matches = {m for m in matches if not archive.is_archived(conn, m)}
+        logger.info(f"Found {len(new_matches)} new matches to process")
 
-    fetch_and_archive_matches(new_matches, headers, conn)
-    logger.info("Ingestion completed")
-    conn.close()
+        fetch_and_archive_matches(new_matches, headers, conn)
 
+        logger.info("Ingestion completed")
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
     main()

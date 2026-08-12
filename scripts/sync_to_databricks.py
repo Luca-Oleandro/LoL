@@ -104,19 +104,22 @@ def main():
 
     conn = archive.get_connection()
 
-    all_patches = archive.get_patches_present(conn)
-    patches_to_keep = all_patches[:RETENTION_PATCH_COUNT]
-    logger.info(f"Patches found locally/archive: {all_patches}")
-    logger.info(f"Patches to keep on Databricks: {patches_to_keep}")
+    try:
+        all_patches = archive.get_patches_present(conn)
+        patches_to_keep = all_patches[:RETENTION_PATCH_COUNT]
+        logger.info(f"Patches found locally/archive: {all_patches}")
+        logger.info(f"Patches to keep on Databricks: {patches_to_keep}")
 
-    sync_patches(conn, workspace_client, catalog, schema, volume, patches_to_keep)
-    cleanup_old_patches(
-        workspace_client, catalog, schema, volume, patches_to_keep
-    )
+        sync_patches(
+            conn, workspace_client, catalog, schema, volume, patches_to_keep
+        )
+        cleanup_old_patches(
+            workspace_client, catalog, schema, volume, patches_to_keep
+        )
 
-    logger.info("Sync completed")
-    conn.close()
-
+        logger.info("Sync completed")
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
     main()

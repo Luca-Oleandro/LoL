@@ -26,31 +26,31 @@ with DAG(
         task_id="fetch_and_archive",
         bash_command="python /opt/airflow/scripts/ingestion.py",
         env={
-            "RIOT_API_KEY": "{{ var.value.riot_api_key }}",
-            "STORAGE_BACKEND": "{{ var.value.storage_backend | default('local') }}",
-            "ARCHIVE_DIR": "{{ var.value.archive_dir | default('/opt/airflow/data/archive') }}",
-            "ARCHIVE_DB_PATH": "{{ var.value.archive_db_path | default('/opt/airflow/data/archive/archive.db') }}",
-            "AZURE_STORAGE_CONNECTION_STRING": "{{ var.value.azure_storage_connection_string | default('') }}",
-            "AZURE_CONTAINER_NAME": "{{ var.value.azure_container_name | default('raw-data') }}",
+            "RIOT_API_KEY": "{{ var.value.get('riot_api_key', '') }}",
+            "STORAGE_BACKEND": "{{ var.value.get('storage_backend', 'local') }}",
+            "ARCHIVE_DIR": "{{ var.value.get('archive_dir', '/opt/airflow/data/archive') }}",
+            "ARCHIVE_DB_PATH": "{{ var.value.get('archive_db_path', '/opt/airflow/data/archive/archive.db') }}",
+            "AZURE_STORAGE_CONNECTION_STRING": "{{ var.value.get('azure_storage_connection_string', '') }}",
+            "AZURE_CONTAINER_NAME": "{{ var.value.get('azure_container_name', 'raw-data') }}",
         },
         append_env=True,
     )
 
     # Sync: Transfer raw data from archive (local or azure) to databricks
     sync_to_databricks = BashOperator(
-        task_id="sync_to_databricks",
-        bash_command="python /opt/airflow/scripts/sync_to_databricks.py",
-        env={
-            "STORAGE_BACKEND": "{{ var.value.storage_backend | default('local') }}",
-            "ARCHIVE_DIR": "{{ var.value.archive_dir | default('/opt/airflow/data/archive') }}",
-            "ARCHIVE_DB_PATH": "{{ var.value.archive_db_path | default('/opt/airflow/data/archive/archive.db') }}",
-            "AZURE_STORAGE_CONNECTION_STRING": "{{ var.value.azure_storage_connection_string | default('') }}",
-            "AZURE_CONTAINER_NAME": "{{ var.value.azure_container_name | default('raw-data') }}",
-            "DATABRICKS_HOST": "{{ var.value.databricks_host }}",
-            "DATABRICKS_TOKEN": "{{ var.value.databricks_token }}",
-        },
-        append_env=True,
-    )
+            task_id="sync_to_databricks",
+            bash_command="python /opt/airflow/scripts/sync_to_databricks.py",
+            env={
+                "STORAGE_BACKEND": "{{ var.value.get('storage_backend', 'local') }}",
+                "ARCHIVE_DIR": "{{ var.value.get('archive_dir', '/opt/airflow/data/archive') }}",
+                "ARCHIVE_DB_PATH": "{{ var.value.get('archive_db_path', '/opt/airflow/data/archive/archive.db') }}",
+                "AZURE_STORAGE_CONNECTION_STRING": "{{ var.value.get('azure_storage_connection_string', '') }}",
+                "AZURE_CONTAINER_NAME": "{{ var.value.get('azure_container_name', 'raw-data') }}",
+                "DATABRICKS_HOST": "{{ var.value.get('databricks_host', '') }}",
+                "DATABRICKS_TOKEN": "{{ var.value.get('databricks_token', '') }}",
+            },
+            append_env=True,
+        )
 
     # Bronze Layer: Data ingestion in Delta tables
     run_bronze = DatabricksSubmitRunOperator(
@@ -60,7 +60,7 @@ with DAG(
             {
                 "task_key": "bronze_task",
                 "notebook_task": {
-                    "notebook_path": "/Workspace/Repos/Projects/LoL/bronze"
+                    "notebook_path": "/Workspace/Repos/Projects/LoL/scripts/bronze"
                 },
             }
         ],
@@ -73,7 +73,7 @@ with DAG(
         tasks=[
             {
                 "task_key": "silver_task",
-                "notebook_task": {"notebook_path": "/Workspace/Repos/Projects/LoL/silver"},
+                "notebook_task": {"notebook_path": "/Workspace/Repos/Projects/LoL/scripts/silver"},
             }
         ],
     )
@@ -85,7 +85,7 @@ with DAG(
         tasks=[
             {
                 "task_key": "gold_task",
-                "notebook_task": {"notebook_path": "/Workspace/Repos/Projects/LoL/gold"},
+                "notebook_task": {"notebook_path": "/Workspace/Repos/Projects/LoL/scripts/gold"},
             }
         ],
     )
