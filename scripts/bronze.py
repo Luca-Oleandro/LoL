@@ -20,6 +20,7 @@ path_json_timelines = "/Volumes/workspace/bronze/raw_data/*/timelines/"
     .writeStream
     .format("delta")
     .option("checkpointLocation", f"{checkpoint_base}/matches_checkpoint")
+    .option("mergeSchema", "true")
     .outputMode("append")
     .trigger(availableNow=True)
     .toTable("workspace.bronze.b_matches")
@@ -34,6 +35,7 @@ path_json_timelines = "/Volumes/workspace/bronze/raw_data/*/timelines/"
     .writeStream
     .format("delta")
     .option("checkpointLocation", f"{checkpoint_base}/timelines_checkpoint")
+    .option("mergeSchema", "true")
     .outputMode("append")
     .trigger(availableNow=True)
     .toTable("workspace.bronze.b_timelines")
