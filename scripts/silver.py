@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "5"
+# ///
 # MAGIC %sql
 # MAGIC USE CATALOG workspace;
 # MAGIC USE SCHEMA silver;
@@ -58,7 +62,32 @@
 # MAGIC     match_id,
 # MAGIC     player_name.riotIdGameName AS player_name,
 # MAGIC     player_name.individualPosition AS lane_position,
-# MAGIC     player_name.championName AS champion,
+# MAGIC     CASE player_name.championName
+# MAGIC         -- Champion with different Id Name
+# MAGIC         WHEN 'MonkeyKing' THEN 'Wukong'
+# MAGIC         WHEN 'Nunu'         THEN 'Nunu & Willump'
+# MAGIC         WHEN 'Renata'       THEN 'Renata Glasc'
+# MAGIC         -- Champions with apostrophes
+# MAGIC         WHEN 'Chogath'      THEN 'Cho''Gath'
+# MAGIC         WHEN 'Kaisa'        THEN 'Kai''Sa'
+# MAGIC         WHEN 'Khazix'       THEN 'Kha''Zix'
+# MAGIC         WHEN 'KogMaw'       THEN 'Kog''Maw'
+# MAGIC         WHEN 'RekSai'       THEN 'Rek''Sai'
+# MAGIC         WHEN 'Velkoz'       THEN 'Vel''Koz'
+# MAGIC         WHEN 'Belveth'      THEN 'Bel''Veth'
+# MAGIC         WHEN 'KSante'       THEN 'K''Sante'
+# MAGIC         -- Champions with spaces or puntuaction
+# MAGIC         WHEN 'DrMundo'      THEN 'Dr. Mundo'
+# MAGIC         WHEN 'JarvanIV'     THEN 'Jarvan IV'
+# MAGIC         WHEN 'MasterYi'     THEN 'Master Yi'
+# MAGIC         WHEN 'MissFortune'  THEN 'Miss Fortune'
+# MAGIC         WHEN 'TahmKench'    THEN 'Tahm Kench'
+# MAGIC         WHEN 'TwistedFate'  THEN 'Twisted Fate'
+# MAGIC         WHEN 'XinZhao'      THEN 'Xin Zhao'
+# MAGIC         -- Champions with format difference
+# MAGIC         WHEN 'FiddleSticks'  THEN 'Fiddlesticks'
+# MAGIC         ELSE player_name.championName
+# MAGIC         END AS champion,
 # MAGIC     player_name.kills AS kills,
 # MAGIC     player_name.deaths AS deaths,
 # MAGIC     player_name.assists AS assists,
