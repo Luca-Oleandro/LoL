@@ -27,9 +27,9 @@
 # MAGIC     p.champion,
 # MAGIC     p.lane_position,
 # MAGIC     COUNT(*) AS games,
-# MAGIC     ROUND(SUM(INT(p.win))/COUNT(*), 2) as winrate,
-# MAGIC     ROUND(SUM(CASE WHEN g.game_duration_minutes <= 25 THEN INT(p.win) END)/COUNT(CASE WHEN g.game_duration_minutes <= 25 THEN 1 END), 2) AS early_game_wr,
-# MAGIC     ROUND(SUM(CASE WHEN g.game_duration_minutes > 25 THEN INT(p.win) END)/COUNT(CASE WHEN g.game_duration_minutes > 25 THEN 1 END), 2) AS late_game_wr,
+# MAGIC     ROUND(SUM(INT(p.win))/COUNT(*), 3) as winrate,
+# MAGIC     ROUND(SUM(CASE WHEN g.game_duration_minutes <= 25 THEN INT(p.win) END)/COUNT(CASE WHEN g.game_duration_minutes <= 25 THEN 1 END), 3) AS early_game_wr,
+# MAGIC     ROUND(SUM(CASE WHEN g.game_duration_minutes > 25 THEN INT(p.win) END)/COUNT(CASE WHEN g.game_duration_minutes > 25 THEN 1 END), 3) AS late_game_wr,
 # MAGIC     g.patch
 # MAGIC FROM workspace.silver.player_info as p
 # MAGIC INNER JOIN matches_with_patch as g ON p.match_id = g.match_id
