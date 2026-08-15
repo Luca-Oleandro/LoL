@@ -1,4 +1,8 @@
 # Databricks notebook source
+# /// script
+# [tool.databricks.environment]
+# environment_version = "5"
+# ///
 # MAGIC %sql
 # MAGIC -- create checkpoint for Auto Loader
 # MAGIC CREATE VOLUME IF NOT EXISTS workspace.bronze.pipeline_checkpoints;
