@@ -97,7 +97,6 @@ def get_matches_id(queue_id, puuids, headers, lookback_days):
     )
     return matches
 
-
 def fetch_and_archive_matches(matches, headers, conn):
     """Download each new match and timeline and save it in archive."""
     for match in matches:
@@ -107,9 +106,15 @@ def fetch_and_archive_matches(matches, headers, conn):
         url_timeline = f"https://europe.api.riotgames.com/lol/match/v5/matches/{match}/timeline"
         match_data = safe_request(url_match, headers).json()
         timeline_data = safe_request(url_timeline, headers).json()
-        archive.archive_match(conn, match, match_data, timeline_data)
-        logger.info(f"Archived match {match}")
 
+        try:
+            archive.archive_match(conn, match, match_data, timeline_data)
+            logger.info(f"Archived match {match}")
+        except Exception as e:
+            # A single malformed/unexpected match shouldn't kill an otherwise
+            # multi-hour run. Log it, skip it, keep going - it'll simply stay
+            # "not archived" and can be investigated separately.
+            logger.error(f"Skipping match {match}: failed to archive ({e})")
 
 def main():
     api_key = os.getenv("RIOT_API_KEY")
