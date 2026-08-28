@@ -109,6 +109,79 @@
 
 # COMMAND ----------
 
+from pyspark.sql import functions as F
+
+# Create snapshot table of timeline
+# Read bronze table
+b_timelines = spark.table("workspace.bronze.b_timelines")
+
+# Create a list of 10 players, each with its stats
+players_array = F.array(
+    [
+        F.struct(
+            F.lit(i).alias("p_id"), # create a column with the player id
+            F.col(f"frame.participantFrames.{i}").alias("stats"),
+        )
+        for i in range(1, 11)
+    ]
+)
+
+# Transform Timeline Snapshots
+s_snapshots = (
+    b_timelines.select(
+        F.col("info.gameId").alias("match_id"),
+        F.explode("info.frames").alias("frame"),
+    )
+    .select(
+        "match_id",
+        (F.col("frame.timestamp") / 60000).cast("int").alias("minute"),
+        # transform the array of players into 10 rows
+        F.explode(players_array).alias("giocatore"),
+    )
+    .select(
+        "match_id",
+        "minute",
+        F.col("giocatore.p_id").alias("participant_id"),
+        "giocatore.stats.*",  # get all stats
+    )
+)
+
+# Save table on Databricks
+s_snapshots.write.format("delta").mode("overwrite").saveAsTable(
+    "workspace.silver.s_timeline_snapshots"
+)
+
+# COMMAND ----------
+
+from pyspark.sql import functions as F
+
+# Read Bronze Table
+b_timelines = spark.table("workspace.bronze.b_timelines")
+
+# Transform Timeline Events
+s_events = (
+    b_timelines
+    .select(
+        F.col("info.gameId").alias("match_id"),
+        # transforms 1 match row into one row for each minute of the game
+        F.explode("info.frames").alias("frame"), 
+    )
+    .select(
+        "match_id",
+        (F.col("frame.timestamp") / 60000).cast("int").alias("minute"),
+        # transforms 1 minute row into one row for each action of the game
+        F.explode("frame.events").alias("event"),
+    )
+    .select("match_id", "minute", "event.*")
+)
+
+# Save Silver Events Table on Databricks
+s_events.write.format("delta").mode("overwrite").saveAsTable(
+    "workspace.silver.s_timeline_events"
+)
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC -- Checking the last 2 patches and deleting the previous ones
 # MAGIC
